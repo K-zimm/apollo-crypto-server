@@ -1,0 +1,73 @@
+{
+  "status": {
+    "timestamp": "2021-07-31T21:36:54.746Z",
+    "error_code": 0,
+    "error_message": null,
+    "elapsed": 25,
+    "credit_count": 1,
+    "notice": null
+  },
+  "data": {
+    "1": {
+      "id": 1,
+      "name": "Bitcoin",
+      "symbol": "BTC",
+      "slug": "bitcoin",
+      "num_market_pairs": 8960,
+      "date_added": "2013-04-28T00:00:00.000Z",
+      "tags": [
+        "mineable",
+        "pow",
+        "sha-256",
+        "store-of-value",
+        "state-channels",
+        "coinbase-ventures-portfolio",
+        "three-arrows-capital-portfolio",
+        "polychain-capital-portfolio",
+        "binance-labs-portfolio",
+        "arrington-xrp-capital",
+        "blockchain-capital-portfolio",
+        "boostvc-portfolio",
+        "cms-holdings-portfolio",
+        "dcg-portfolio",
+        "dragonfly-capital-portfolio",
+        "electric-capital-portfolio",
+        "fabric-ventures-portfolio",
+        "framework-ventures",
+        "galaxy-digital-portfolio",
+        "huobi-capital",
+        "alameda-research-portfolio",
+        "a16z-portfolio",
+        "1confirmation-portfolio",
+        "winklevoss-capital",
+        "usv-portfolio",
+        "placeholder-ventures-portfolio",
+        "pantera-capital-portfolio",
+        "multicoin-capital-portfolio",
+        "paradigm-xzy-screener"
+      ],
+      "max_supply": 21000000,
+      "circulating_supply": 18772493,
+      "total_supply": 18772493,
+      "is_active": 1,
+      "platform": null,
+      "cmc_rank": 1,
+      "is_fiat": 0,
+      "last_updated": "2021-07-31T21:36:07.000Z",
+      "quote": {
+        "USD": {
+          "price": 41780.24208515556,
+          "volume_24h": 28688620020.972775,
+          "percent_change_1h": 0.50614112,
+          "percent_change_24h": 1.42882732,
+          "percent_change_7d": 23.12719224,
+          "percent_change_30d": 24.90687361,
+          "percent_change_60d": 14.94294272,
+          "percent_change_90d": -26.85257778,
+          "market_cap": 784319302081.8881,
+          "last_updated": "2021-07-31T21:36:07.000Z"
+        }
+      }
+    }
+  }
+}
