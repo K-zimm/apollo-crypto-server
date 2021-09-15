@@ -1,10 +1,20 @@
-const { ApolloServer, gql } = require('apollo-server');
+const { ApolloServer, gql } = require('apollo-server-express');
+const { ApolloServerPluginDrainHttpServer } = require('apollo-server-core');
+const express = require('express');
+const http = require('http');
+const { createServer } = require('http');
+const { execute, subscribe } = require('graphql');
+const { SubscriptionServer } = require('subscriptions-transport-ws');
+const { makeExecutableSchema } = require('@graphql-tools/schema');
+const { PubSub } = require('graphql-subscriptions');
+
 const {
   ApolloServerPluginLandingPageGraphQLPlayground,
 } = require('apollo-server-core');
 const { GraphQLScalarType } = require('graphql');
 const { Kind } = require('graphql/language');
 const mongoose = require('mongoose');
+const { Http2ServerRequest } = require('http2');
 
 mongoose.connect(
   'mongodb+srv://kzimms:elxitv5uTV2pdlJR@trades.v6bkf.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
@@ -88,6 +98,10 @@ const typeDefs = gql`
     addTrade(trade: TradeInput): [Trade]
     addUser(user: UserInput): [User]
   }
+
+  type Subscription {
+    userAdded: User
+  }
 `;
 
 const users = [
@@ -142,7 +156,17 @@ const trades = [
   },
 ];
 
+// Resolvers
+const pubsub = new PubSub();
+const USER_ADDED = 'USER_ADDED';
+
 const resolvers = {
+  Subscription: {
+    userAdded: {
+      subscribe: () => pubsub.asyncIterator([USER_ADDED]),
+    },
+  },
+
   Query: {
     users: async () => {
       try {
@@ -184,15 +208,14 @@ const resolvers = {
   },
 
   Mutation: {
-    addUser: async (obj, { user }, { host }) => {
+    addUser: async (obj, { user }, { userId }) => {
       try {
-        if (host === 'localhost:4000') {
-          const newUser = await User.create({
-            ...user,
-          });
-          const allUsers = await User.find();
-          return allUsers;
-        }
+        const newUser = await User.create({
+          ...user,
+        });
+        pubsub.publish(USER_ADDED, { userAdded: newUser });
+        const allUsers = await User.find();
+        return allUsers;
       } catch (error) {
         console.log('Error', error);
         return [];
@@ -218,24 +241,56 @@ const resolvers = {
   }),
 };
 
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  introspection: true,
-  plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
-  context: ({ req }) => {
-    return { host: req.headers.host };
-  },
-});
+async function startApolloServer(typeDefs, resolvers) {
+  const app = express();
+  const httpServer = http.createServer(app);
+
+  const schema = makeExecutableSchema({ typeDefs, resolvers });
+
+  const server = new ApolloServer({
+    schema,
+    introspection: true,
+    plugins: [
+      ApolloServerPluginLandingPageGraphQLPlayground(),
+      ApolloServerPluginDrainHttpServer({ httpServer }),
+      {
+        async serverWillStart() {
+          return {
+            async drainServer() {
+              subscriptionServer.close();
+            },
+          };
+        },
+      },
+    ],
+    context: ({ req }) => {
+      return { host: req.headers.host };
+    },
+  });
+
+  const subscriptionServer = SubscriptionServer.create(
+    {
+      schema,
+      execute,
+      subscribe,
+    },
+    {
+      server: httpServer,
+      path: server.graphqlPath,
+    }
+  );
+
+  await server.start();
+  server.applyMiddleware({
+    app,
+  });
+
+  await new Promise((resolve) => httpServer.listen({ port: 4000 }, resolve));
+  console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`);
+}
 
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function () {
   console.log('Database Connected');
-  server
-    .listen({
-      port: process.env.PORT || 4000,
-    })
-    .then(({ url }) => {
-      console.log(`Server started at ${url}`);
-    });
+  startApolloServer(typeDefs, resolvers);
 });
