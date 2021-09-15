@@ -1,8 +1,8 @@
 const { ApolloServer, gql } = require('apollo-server-express');
 const { ApolloServerPluginDrainHttpServer } = require('apollo-server-core');
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
-const { createServer } = require('http');
 const { execute, subscribe } = require('graphql');
 const { SubscriptionServer } = require('subscriptions-transport-ws');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
@@ -14,10 +14,9 @@ const {
 const { GraphQLScalarType } = require('graphql');
 const { Kind } = require('graphql/language');
 const mongoose = require('mongoose');
-const { Http2ServerRequest } = require('http2');
 
 mongoose.connect(
-  'mongodb+srv://kzimms:elxitv5uTV2pdlJR@trades.v6bkf.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
+  `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@trades.v6bkf.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`,
   { useNewUrlParser: true, useUnifiedTopology: true }
 );
 const db = mongoose.connection;
